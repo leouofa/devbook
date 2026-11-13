@@ -87,7 +87,7 @@ class PromptsControllerTest < ActionDispatch::IntegrationTest
 
   test "should purge attachment" do
     FileUtils.mkdir_p(Rails.root.join("test/fixtures/files"))
-    File.write(Rails.root.join("test/fixtures/files/sample.txt"), "Sample attachment")
+    File.write(Rails.root.join("test/fixtures/files/sample.txt"), "Sample prompt attachment content")
     file = fixture_file_upload("sample.txt", "text/plain")
     @standalone_prompt.files.attach(file)
     attachment = @standalone_prompt.files.last
