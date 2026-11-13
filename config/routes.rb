@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   root "prompts#index"
 
   resources :projects do
-    resources :prompts, only: [:new, :create]
+    resources :prompts, only: [ :new, :create ]
   end
 
   resources :prompts do

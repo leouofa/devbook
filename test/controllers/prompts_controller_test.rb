@@ -78,7 +78,7 @@ class PromptsControllerTest < ActionDispatch::IntegrationTest
     file = fixture_file_upload("sample.txt", "text/plain")
 
     assert_difference("@standalone_prompt.files.count", 1) do
-      post attach_files_prompt_url(@standalone_prompt), params: { files: [file] }
+      post attach_files_prompt_url(@standalone_prompt), params: { files: [ file ] }
     end
 
     assert_redirected_to prompt_url(@standalone_prompt)
