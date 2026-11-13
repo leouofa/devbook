@@ -1,0 +1,14 @@
+<% content_for :title, "New Prompt — Devbook" %>
+
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="flex items-center justify-between pb-4 border-b border-neutral-800">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-white">Create New Prompt</h1>
+      <p class="text-xs text-neutral-400 mt-1 font-mono">
+        Add instructions, templates, or system prompts with Markdown and attachments
+      </p>
+    </div>
+  </div>
+
+  <%= render "form", prompt: @prompt %>
+</div>

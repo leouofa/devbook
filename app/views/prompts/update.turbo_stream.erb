@@ -1,0 +1,9 @@
+<%= turbo_stream.update "rendered_markdown_container" do %>
+  <% if @prompt.body.present? %>
+    <%= render_markdown(@prompt.body) %>
+  <% else %>
+    <div class="text-neutral-500 italic text-sm py-8 text-center font-mono">
+      (Empty prompt body. Click "Edit" or "Split" above to start writing.)
+    </div>
+  <% end %>
+<% end %>
