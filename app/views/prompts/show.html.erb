@@ -1,0 +1,184 @@
+<% content_for :title, "#{@prompt.title} — Devbook" %>
+
+<div class="max-w-5xl mx-auto space-y-6"
+     data-controller="markdown-editor"
+     data-markdown-editor-mode-value="preview"
+     data-markdown-editor-save-url-value="<%= prompt_path(@prompt) %>">
+
+  <!-- Breadcrumbs & Meta -->
+  <div class="flex items-center justify-between text-xs font-mono text-neutral-500">
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <%= link_to "Devbook", root_path, class: "hover:text-neutral-300 transition" %>
+      <span>/</span>
+      <% if @prompt.project.present? %>
+        <%= link_to "Projects", projects_path, class: "hover:text-neutral-300 transition" %>
+        <span>/</span>
+        <%= link_to @prompt.project.name, project_path(@prompt.project), class: "text-cyan-400 hover:text-cyan-300 transition" %>
+      <% else %>
+        <%= link_to "Standalone Prompts", prompts_path(scope: "standalone"), class: "hover:text-neutral-300 transition" %>
+      <% end %>
+      <span>/</span>
+      <span class="text-neutral-300 truncate max-w-[200px]"><%= @prompt.title %></span>
+    </div>
+
+    <!-- Live Save Status Indicator -->
+    <div class="flex items-center gap-2">
+      <span data-markdown-editor-target="statusIndicator" class="text-xs font-mono text-neutral-500">
+        Saved
+      </span>
+      <span class="text-neutral-600">|</span>
+      <span class="text-[11px] text-neutral-500 font-mono">⌘S to save</span>
+    </div>
+  </div>
+
+  <!-- Header Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800/80">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <%= @prompt.title %>
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-2 mt-1.5">
+        <% if @prompt.project.present? %>
+          <%= link_to project_path(@prompt.project), class: "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono bg-cyan-950/70 text-cyan-400 border border-cyan-800/50 hover:bg-cyan-900/60 transition" do %>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            Project: <%= @prompt.project.name %>
+          <% end %>
+        <% else %>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-neutral-800 text-neutral-400 border border-neutral-700/60">
+            Standalone Prompt
+          </span>
+        <% end %>
+
+        <span class="text-neutral-600 text-xs font-mono">•</span>
+        <span class="text-xs text-neutral-500 font-mono">Updated <%= time_ago_in_words(@prompt.updated_at) %> ago</span>
+      </div>
+    </div>
+
+    <!-- Actions Toolbar -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <!-- One-Click Copy Markdown Button -->
+      <div data-controller="clipboard" data-clipboard-content-value="<%= @prompt.body %>">
+        <button type="button"
+                data-clipboard-target="button"
+                data-action="click->clipboard#copy"
+                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-neutral-800 hover:bg-neutral-700 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 shadow-sm transition active:scale-95">
+          <svg class="w-4 h-4 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <span data-clipboard-target="label">Copy Markdown</span>
+        </button>
+      </div>
+
+      <!-- Mode Selector Tabs: Preview | Edit | Split -->
+      <div class="inline-flex rounded-lg bg-neutral-900 p-0.5 border border-neutral-800 text-xs font-mono">
+        <button type="button"
+                data-markdown-editor-target="previewTab"
+                data-action="click->markdown-editor#setPreviewMode"
+                class="px-2.5 py-1 rounded-md font-medium transition bg-neutral-800 text-neutral-100 shadow-sm">
+          Preview
+        </button>
+        <button type="button"
+                data-markdown-editor-target="editTab"
+                data-action="click->markdown-editor#setEditMode"
+                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200">
+          Edit
+        </button>
+        <button type="button"
+                data-markdown-editor-target="splitTab"
+                data-action="click->markdown-editor#setSplitMode"
+                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200">
+          Split
+        </button>
+      </div>
+
+      <!-- Delete Prompt Button -->
+      <%= button_to prompt_path(@prompt),
+                    method: :delete,
+                    form: { data: { turbo_confirm: "Are you sure you want to delete this prompt?" } },
+                    class: "p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-neutral-900 border border-neutral-800/60 transition",
+                    title: "Delete prompt" do %>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Prompt Edit / View Form -->
+  <%= form_with model: @prompt,
+                data: { markdown_editor_target: "form" },
+                class: "space-y-4" do |f| %>
+
+    <!-- Title and Project Selector Toolbar -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-neutral-900/50 border border-neutral-800 rounded-xl">
+      <div class="md:col-span-2">
+        <label class="block text-[10px] font-mono uppercase text-neutral-400 mb-1">Prompt Title</label>
+        <%= f.text_field :title,
+                         data: { markdown_editor_target: "titleInput", action: "input->markdown-editor#onInput" },
+                         class: "w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-sm text-neutral-100 focus:outline-none focus:border-cyan-500 font-medium" %>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-mono uppercase text-neutral-400 mb-1">Assigned Project</label>
+        <%= f.collection_select :project_id,
+                                Project.order(:name),
+                                :id,
+                                :name,
+                                { include_blank: "(None / Standalone Prompt)" },
+                                { data: { action: "change->markdown-editor#saveNow" },
+                                  class: "w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs font-mono text-neutral-200 focus:outline-none focus:border-cyan-500" } %>
+      </div>
+    </div>
+
+    <!-- Workspace Panes Container -->
+    <div data-markdown-editor-target="splitPane" class="block">
+      <!-- Editor Pane (Textarea) -->
+      <div data-markdown-editor-target="editorPane" class="hidden space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-mono text-neutral-400 px-1">
+          <span>Markdown Source</span>
+          <button type="button" data-action="click->markdown-editor#saveNow" class="text-cyan-400 hover:underline">
+            Save changes
+          </button>
+        </div>
+        <%= f.text_area :body,
+                        rows: 18,
+                        data: {
+                          markdown_editor_target: "textarea",
+                          action: "input->markdown-editor#onInput"
+                        },
+                        placeholder: "Write your prompt here using Markdown (code blocks, lists, variables)...",
+                        class: "w-full p-4 bg-neutral-900 border border-neutral-800 rounded-xl text-neutral-200 font-mono text-sm leading-relaxed focus:outline-none focus:border-cyan-500/80 focus:ring-1 focus:ring-cyan-500/50 resize-y shadow-inner" %>
+      </div>
+
+      <!-- Preview Pane (Rendered Markdown) -->
+      <div data-markdown-editor-target="previewPane" class="block space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-mono text-neutral-400 px-1">
+          <span>Rendered Markdown View</span>
+          <button type="button" data-action="click->markdown-editor#setEditMode" class="text-cyan-400 hover:underline">
+            Edit content
+          </button>
+        </div>
+        <div id="rendered_markdown_container"
+             class="markdown-body p-6 bg-neutral-900 border border-neutral-800 rounded-xl min-h-[350px] shadow-sm">
+          <% if @prompt.body.present? %>
+            <%= render_markdown(@prompt.body) %>
+          <% else %>
+            <div class="text-neutral-500 italic text-sm py-8 text-center font-mono">
+              (Empty prompt body. Click "Edit" or "Split" above to start writing.)
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Attachments Section (ActiveStorage Dropzone) -->
+  <div class="pt-6 border-t border-neutral-800/80">
+    <%= render "prompts/attachments", prompt: @prompt %>
+  </div>
+</div>

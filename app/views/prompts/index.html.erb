@@ -1,0 +1,67 @@
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- Top Header & Controls -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold tracking-tight text-white">
+          <%= params[:q].present? ? "Search: \"#{params[:q]}\"" : (@scope == "all" ? "All Prompts" : "Standalone Prompts") %>
+        </h1>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-neutral-800 text-neutral-400 border border-neutral-700/60">
+          <%= @prompts.size %>
+        </span>
+      </div>
+      <p class="text-xs text-neutral-400 mt-1 font-mono">
+        <%= params[:q].present? ? "Showing matching prompts across titles and markdown content" : (@scope == "all" ? "All prompts across all projects and standalone" : "Individual prompts not tied to any project") %>
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Scope switch pills if not searching -->
+      <% unless params[:q].present? %>
+        <div class="inline-flex rounded-lg bg-neutral-900 p-0.5 border border-neutral-800 text-xs">
+          <%= link_to "Standalone", prompts_path(scope: "standalone"),
+                      class: "px-3 py-1.5 rounded-md font-medium transition #{ @scope != 'all' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-neutral-200' }" %>
+          <%= link_to "All Prompts", prompts_path(scope: "all"),
+                      class: "px-3 py-1.5 rounded-md font-medium transition #{ @scope == 'all' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-neutral-200' }" %>
+        </div>
+      <% end %>
+
+      <%= link_to new_prompt_path, class: "inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-neutral-950 font-semibold text-xs rounded-lg transition shadow-sm" do %>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Prompt
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Prompts Grid -->
+  <% if @prompts.any? %>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% @prompts.each do |prompt| %>
+        <%= render "prompts/prompt_card", prompt: prompt %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="p-12 text-center border-2 border-dashed border-neutral-800/80 rounded-2xl bg-neutral-900/20 max-w-lg mx-auto my-12">
+      <div class="w-12 h-12 rounded-xl bg-neutral-800/80 flex items-center justify-center text-neutral-500 mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3 class="text-sm font-semibold text-neutral-200 mb-1">
+        <%= params[:q].present? ? "No matching prompts found" : "No prompts yet" %>
+      </h3>
+      <p class="text-xs text-neutral-400 mb-5">
+        <%= params[:q].present? ? "Try searching for a different keyword or clear the search filter." : "Get started by creating your first prompt." %>
+      </p>
+      <%= link_to new_prompt_path, class: "inline-flex items-center gap-1.5 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-neutral-950 font-semibold text-xs rounded-lg transition" do %>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create Prompt
+      <% end %>
+    </div>
+  <% end %>
+</div>

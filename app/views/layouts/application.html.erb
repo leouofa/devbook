@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="h-full bg-neutral-950 text-neutral-100 antialiased dark">
   <head>
-    <title><%= content_for(:title) || "Devbook" %></title>
+    <title><%= content_for(:title) || "Devbook — Prompt Manager" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Devbook">
@@ -11,21 +11,202 @@
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
+  <body class="h-full flex overflow-hidden bg-neutral-950 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <!-- Left Workspace Sidebar -->
+    <aside class="w-72 lg:w-80 shrink-0 bg-neutral-900 border-r border-neutral-800/80 flex flex-col h-full z-20">
+      <!-- App Header -->
+      <div class="p-4 border-b border-neutral-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-mono font-bold text-base">
+            D
+          </div>
+          <div>
+            <a href="<%= root_path %>" class="font-bold text-neutral-100 hover:text-cyan-400 transition tracking-tight flex items-center gap-1.5 text-base">
+              Devbook
+            </a>
+            <div class="text-[11px] text-neutral-500 font-mono leading-none">Local Prompt Studio</div>
+          </div>
+        </div>
+
+        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700/60">
+          No Auth
+        </span>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="p-3 border-b border-neutral-800/60">
+        <%= form_with url: prompts_path, method: :get, class: "relative" do |f| %>
+          <svg class="w-4 h-4 text-neutral-500 absolute left-3 top-2.5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <%= f.text_field :q, value: params[:q], placeholder: "Search prompts (title, body)...", class: "w-full pl-9 pr-3 py-1.5 text-xs bg-neutral-950 border border-neutral-800 rounded-md text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 font-sans" %>
+          <% if params[:q].present? %>
+            <a href="<%= prompts_path %>" class="absolute right-2.5 top-2 text-neutral-500 hover:text-neutral-300 text-xs font-mono">&times;</a>
+          <% end %>
+        <% end %>
+      </div>
+
+      <!-- New Action Buttons -->
+      <div class="p-3 grid grid-cols-2 gap-2 border-b border-neutral-800/60">
+        <%= link_to new_prompt_path, class: "flex items-center justify-center gap-1.5 py-1.5 px-3 bg-cyan-600 hover:bg-cyan-500 text-neutral-950 font-semibold text-xs rounded-md shadow-sm transition tracking-tight" do %>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Prompt
+        <% end %>
+
+        <%= link_to new_project_path, class: "flex items-center justify-center gap-1.5 py-1.5 px-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium text-xs rounded-md border border-neutral-700/60 transition tracking-tight" do %>
+          <svg class="w-3.5 h-3.5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Project
+        <% end %>
+      </div>
+
+      <!-- Tree Navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-6 text-xs">
+        <!-- Projects Section -->
+        <div>
+          <div class="flex items-center justify-between px-2 mb-1.5">
+            <span class="text-[11px] font-semibold font-mono tracking-wider text-neutral-500 uppercase">Projects</span>
+            <span class="text-[10px] font-mono text-neutral-600"><%= @sidebar_projects&.size || 0 %></span>
+          </div>
+
+          <div class="space-y-1">
+            <% if @sidebar_projects.present? && @sidebar_projects.any? %>
+              <% @sidebar_projects.each do |project| %>
+                <div class="group/proj">
+                  <div class="flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-300 hover:text-white transition group">
+                    <%= link_to project_path(project), class: "flex items-center gap-2 truncate flex-1" do %>
+                      <svg class="w-3.5 h-3.5 text-cyan-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                      <span class="truncate font-medium"><%= project.name %></span>
+                    <% end %>
+
+                    <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100">
+                      <span class="text-[10px] font-mono text-neutral-500"><%= project.prompts.size %></span>
+                      <%= link_to new_project_prompt_path(project), title: "Add prompt to #{project.name}", class: "hover:text-cyan-400 p-0.5" do %>
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <!-- Nested Prompts under Project -->
+                  <% if project.prompts.any? %>
+                    <div class="ml-4 pl-2 border-l border-neutral-800/80 space-y-0.5 mt-0.5">
+                      <% project.prompts.first(5).each do |prompt| %>
+                        <%= link_to prompt_path(prompt), class: "block truncate px-2 py-1 rounded text-neutral-400 hover:text-cyan-300 hover:bg-neutral-800/40 text-[11.5px] transition" do %>
+                          <span class="font-mono text-neutral-600 mr-1.5">↳</span><%= prompt.title %>
+                        <% end %>
+                      <% end %>
+                      <% if project.prompts.size > 5 %>
+                        <%= link_to project_path(project), class: "block text-[10.5px] text-neutral-500 hover:text-neutral-400 px-2 py-0.5 font-mono" do %>
+                          + <%= project.prompts.size - 5 %> more...
+                        <% end %>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            <% else %>
+              <div class="px-2.5 py-2 text-neutral-500 text-[11px] italic">
+                No projects yet.
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Standalone Prompts Section -->
+        <div>
+          <div class="flex items-center justify-between px-2 mb-1.5">
+            <span class="text-[11px] font-semibold font-mono tracking-wider text-neutral-500 uppercase">Standalone Prompts</span>
+            <span class="text-[10px] font-mono text-neutral-600"><%= @sidebar_total_standalone_count %></span>
+          </div>
+
+          <div class="space-y-0.5">
+            <% if @sidebar_standalone_prompts.present? && @sidebar_standalone_prompts.any? %>
+              <% @sidebar_standalone_prompts.each do |prompt| %>
+                <%= link_to prompt_path(prompt), class: "flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-400 hover:text-neutral-100 transition truncate text-[12px]" do %>
+                  <svg class="w-3.5 h-3.5 text-neutral-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span class="truncate"><%= prompt.title %></span>
+                <% end %>
+              <% end %>
+            <% else %>
+              <div class="px-2.5 py-2 text-neutral-500 text-[11px] italic">
+                No standalone prompts yet.
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Quick Scope Links -->
+        <div class="pt-2 border-t border-neutral-800/60 space-y-1">
+          <%= link_to prompts_path(scope: "standalone"), class: "flex items-center justify-between px-2.5 py-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40 text-[11.5px]" do %>
+            <span>All Standalone Prompts</span>
+            <span class="font-mono text-[10px] text-neutral-500"><%= @sidebar_total_standalone_count %></span>
+          <% end %>
+
+          <%= link_to prompts_path(scope: "all"), class: "flex items-center justify-between px-2.5 py-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40 text-[11.5px]" do %>
+            <span>All Prompts (Global)</span>
+            <span class="font-mono text-[10px] text-neutral-500"><%= @sidebar_total_prompts_count %></span>
+          <% end %>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="p-3 border-t border-neutral-800/80 text-[11px] text-neutral-500 flex items-center justify-between font-mono">
+        <span>Devbook v1.0</span>
+        <span class="inline-flex items-center gap-1.5 text-emerald-400">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Ready
+        </span>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Pane -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-neutral-950">
+      <!-- Flash Notices -->
+      <% if notice.present? %>
+        <div class="bg-emerald-500/10 border-b border-emerald-500/20 px-6 py-2.5 text-xs text-emerald-400 font-medium flex items-center justify-between animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span><%= notice %></span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-300 font-mono text-sm leading-none">&times;</button>
+        </div>
+      <% end %>
+
+      <% if alert.present? %>
+        <div class="bg-rose-500/10 border-b border-rose-500/20 px-6 py-2.5 text-xs text-rose-400 font-medium flex items-center justify-between animate-fade-in">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span><%= alert %></span>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-300 font-mono text-sm leading-none">&times;</button>
+        </div>
+      <% end %>
+
+      <!-- Scrollable Main Content -->
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <%= yield %>
+      </div>
     </main>
   </body>
 </html>

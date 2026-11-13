@@ -1,0 +1,14 @@
+<% content_for :title, "Edit #{@project.name} — Devbook" %>
+
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="flex items-center justify-between pb-4 border-b border-neutral-800">
+    <div>
+      <h1 class="text-xl font-bold tracking-tight text-white">Edit Project</h1>
+      <p class="text-xs text-neutral-400 mt-1 font-mono">
+        Update project title or description
+      </p>
+    </div>
+  </div>
+
+  <%= render "form", project: @project %>
+</div>
