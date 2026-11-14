@@ -1,15 +1,15 @@
-<div class="group relative flex flex-col justify-between p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 hover:shadow-lg transition">
+<div class="group relative flex flex-col justify-between p-4 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-700 hover:shadow-lg transition cursor-pointer">
   <div>
-    <!-- Top row: Project badge & Copy Button -->
+    <!-- Top row: Project badge & Pin/Copy Buttons -->
     <div class="flex items-center justify-between gap-2 mb-2">
-      <div>
+      <div class="relative z-10 pointer-events-none">
         <% if prompt.project.present? %>
-          <%= link_to project_path(prompt.project), class: "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-mono bg-cyan-950/60 text-cyan-400 border border-cyan-800/40 hover:bg-cyan-900/60 transition" do %>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10.5px] font-mono bg-cyan-950/60 text-cyan-400 border border-cyan-800/40">
             <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
             </svg>
             <span class="truncate max-w-[120px]"><%= prompt.project.name %></span>
-          <% end %>
+          </span>
         <% else %>
           <span class="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-mono bg-neutral-800 text-neutral-400 border border-neutral-700/50">
             Standalone
@@ -17,23 +17,37 @@
         <% end %>
       </div>
 
-      <!-- Quick Copy Button -->
-      <div data-controller="clipboard" data-clipboard-content-value="<%= prompt.body %>">
-        <button type="button"
-                data-clipboard-target="button"
-                data-action="click->clipboard#copy"
-                title="Copy raw Markdown"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition active:scale-95">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      <!-- Action Buttons: Pin & Copy -->
+      <div class="relative z-20 flex items-center gap-1.5">
+        <!-- Pin / Unpin Button -->
+        <%= button_to toggle_pin_prompt_path(prompt),
+                      method: :patch,
+                      title: prompt.pinned? ? "Unpin prompt" : "Pin prompt",
+                      class: "inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono transition active:scale-95 #{prompt.pinned? ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-400 hover:text-white border border-neutral-700/60'}" do %>
+          <svg class="w-3.5 h-3.5 shrink-0 <%= prompt.pinned? ? 'fill-current text-cyan-400' : 'fill-none' %>" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
           </svg>
-          <span data-clipboard-target="label" class="text-[11px]">Copy</span>
-        </button>
+          <span class="text-[11px]"><%= prompt.pinned? ? "Pinned" : "Pin" %></span>
+        <% end %>
+
+        <!-- Quick Copy Button -->
+        <div data-controller="clipboard" data-clipboard-content-value="<%= prompt.body %>">
+          <button type="button"
+                  data-clipboard-target="button"
+                  data-action="click->clipboard#copy"
+                  title="Copy raw Markdown"
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-mono bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition active:scale-95">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span data-clipboard-target="label" class="text-[11px]">Copy</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Title -->
-    <%= link_to prompt_path(prompt), class: "block font-semibold text-neutral-100 group-hover:text-cyan-400 transition text-base tracking-tight mb-1.5" do %>
+    <!-- Title & Entire Card Click target -->
+    <%= link_to prompt_path(prompt), class: "block font-semibold text-neutral-100 group-hover:text-cyan-400 transition text-base tracking-tight mb-1.5 after:absolute after:inset-0 after:z-10 after:content-['']" do %>
       <%= prompt.title %>
     <% end %>
 

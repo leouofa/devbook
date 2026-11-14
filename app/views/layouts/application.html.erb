@@ -83,40 +83,22 @@
           <div class="space-y-1">
             <% if @sidebar_projects.present? && @sidebar_projects.any? %>
               <% @sidebar_projects.each do |project| %>
-                <div class="group/proj">
-                  <div class="flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-300 hover:text-white transition group">
-                    <%= link_to project_path(project), class: "flex items-center gap-2 truncate flex-1" do %>
-                      <svg class="w-3.5 h-3.5 text-cyan-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                      </svg>
-                      <span class="truncate font-medium"><%= project.name %></span>
-                    <% end %>
-
-                    <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100">
-                      <span class="text-[10px] font-mono text-neutral-500"><%= project.prompts.size %></span>
-                      <%= link_to new_project_prompt_path(project), title: "Add prompt to #{project.name}", class: "hover:text-cyan-400 p-0.5" do %>
-                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                      <% end %>
-                    </div>
-                  </div>
-
-                  <!-- Nested Prompts under Project -->
-                  <% if project.prompts.any? %>
-                    <div class="ml-4 pl-2 border-l border-neutral-800/80 space-y-0.5 mt-0.5">
-                      <% project.prompts.first(5).each do |prompt| %>
-                        <%= link_to prompt_path(prompt), class: "block truncate px-2 py-1 rounded text-neutral-400 hover:text-cyan-300 hover:bg-neutral-800/40 text-[11.5px] transition" do %>
-                          <span class="font-mono text-neutral-600 mr-1.5">↳</span><%= prompt.title %>
-                        <% end %>
-                      <% end %>
-                      <% if project.prompts.size > 5 %>
-                        <%= link_to project_path(project), class: "block text-[10.5px] text-neutral-500 hover:text-neutral-400 px-2 py-0.5 font-mono" do %>
-                          + <%= project.prompts.size - 5 %> more...
-                        <% end %>
-                      <% end %>
-                    </div>
+                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-300 hover:text-white transition group">
+                  <%= link_to project_path(project), class: "flex items-center gap-2 truncate flex-1" do %>
+                    <svg class="w-3.5 h-3.5 text-cyan-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <span class="truncate font-medium"><%= project.name %></span>
                   <% end %>
+
+                  <div class="flex items-center gap-1.5 opacity-60 group-hover:opacity-100">
+                    <span class="text-[10px] font-mono text-neutral-500"><%= project.prompts.size %></span>
+                    <%= link_to new_project_prompt_path(project), title: "Add prompt to #{project.name}", class: "hover:text-cyan-400 p-0.5" do %>
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                    <% end %>
+                  </div>
                 </div>
               <% end %>
             <% else %>
@@ -127,26 +109,45 @@
           </div>
         </div>
 
-        <!-- Standalone Prompts Section -->
+        <!-- Standalone Prompts Row (Clickable, no prompts underneath) -->
+        <div>
+          <%= link_to prompts_path(scope: "standalone"), class: "flex items-center justify-between px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-300 hover:text-white transition group" do %>
+            <div class="flex items-center gap-2 truncate">
+              <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span class="text-[11px] font-semibold font-mono tracking-wider text-neutral-400 group-hover:text-neutral-200 uppercase">Standalone Prompts</span>
+            </div>
+            <span class="text-[10px] font-mono text-neutral-500"><%= @sidebar_total_standalone_count %></span>
+          <% end %>
+        </div>
+
+        <!-- Pinned Prompts Section -->
         <div>
           <div class="flex items-center justify-between px-2 mb-1.5">
-            <span class="text-[11px] font-semibold font-mono tracking-wider text-neutral-500 uppercase">Standalone Prompts</span>
-            <span class="text-[10px] font-mono text-neutral-600"><%= @sidebar_total_standalone_count %></span>
+            <span class="text-[11px] font-semibold font-mono tracking-wider text-neutral-500 uppercase">Pinned Prompts</span>
+            <span class="text-[10px] font-mono text-neutral-600"><%= @sidebar_pinned_prompts&.size || 0 %></span>
           </div>
 
-          <div class="space-y-0.5">
-            <% if @sidebar_standalone_prompts.present? && @sidebar_standalone_prompts.any? %>
-              <% @sidebar_standalone_prompts.each do |prompt| %>
-                <%= link_to prompt_path(prompt), class: "flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-400 hover:text-neutral-100 transition truncate text-[12px]" do %>
-                  <svg class="w-3.5 h-3.5 text-neutral-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <div class="space-y-0.5"
+               data-controller="pinned-sortable"
+               data-pinned-sortable-url-value="<%= reorder_pinned_prompts_path %>">
+            <% if @sidebar_pinned_prompts.present? && @sidebar_pinned_prompts.any? %>
+              <% @sidebar_pinned_prompts.each do |prompt| %>
+                <div draggable="true"
+                     data-prompt-id="<%= prompt.id %>"
+                     data-action="dragstart->pinned-sortable#dragStart dragover->pinned-sortable#dragOver dragend->pinned-sortable#dragEnd"
+                     class="flex items-center gap-1.5 px-2 py-1.5 rounded-md hover:bg-neutral-800/60 text-neutral-400 hover:text-neutral-100 transition group cursor-grab active:cursor-grabbing text-[12px]">
+                  <span class="text-neutral-600 group-hover:text-neutral-400 shrink-0 select-none text-[11px] cursor-grab" title="Drag to reorder">⋮⋮</span>
+                  <svg class="w-3.5 h-3.5 text-cyan-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 3a1 1 0 0 1 .117 1.993L16 5v4.586l1.707 1.707A1 1 0 0 1 17.79 12.6l-.083.107-.707.707V18a1 1 0 0 1-.883.993L16 19h-3v4a1 1 0 0 1-1.993.117L11 23v-4H8a1 1 0 0 1-.993-.883L7 18v-4.586l-.707-.707a1 1 0 0 1-.097-1.306l.097-.108 1.707-1.707V5a1 1 0 0 1-.117-1.993L8 3h8z" />
                   </svg>
-                  <span class="truncate"><%= prompt.title %></span>
-                <% end %>
+                  <%= link_to prompt.title, prompt_path(prompt), class: "truncate flex-1 hover:text-cyan-300" %>
+                </div>
               <% end %>
             <% else %>
               <div class="px-2.5 py-2 text-neutral-500 text-[11px] italic">
-                No standalone prompts yet.
+                No pinned prompts yet.
               </div>
             <% end %>
           </div>
@@ -154,11 +155,6 @@
 
         <!-- Quick Scope Links -->
         <div class="pt-2 border-t border-neutral-800/60 space-y-1">
-          <%= link_to prompts_path(scope: "standalone"), class: "flex items-center justify-between px-2.5 py-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40 text-[11.5px]" do %>
-            <span>All Standalone Prompts</span>
-            <span class="font-mono text-[10px] text-neutral-500"><%= @sidebar_total_standalone_count %></span>
-          <% end %>
-
           <%= link_to prompts_path(scope: "all"), class: "flex items-center justify-between px-2.5 py-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40 text-[11.5px]" do %>
             <span>All Prompts (Global)</span>
             <span class="font-mono text-[10px] text-neutral-500"><%= @sidebar_total_prompts_count %></span>

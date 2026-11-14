@@ -106,4 +106,46 @@ class PromptsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_url
   end
+
+  test "should toggle pin for prompt" do
+    assert_not @standalone_prompt.pinned?
+    patch toggle_pin_prompt_url(@standalone_prompt)
+    assert_redirected_to prompt_url(@standalone_prompt)
+    assert @standalone_prompt.reload.pinned?
+
+    patch toggle_pin_prompt_url(@standalone_prompt, format: :json)
+    assert_response :ok
+    assert_not @standalone_prompt.reload.pinned?
+  end
+
+  test "should reorder pinned prompts" do
+    p1 = Prompt.create!(title: "P1", pinned: true, pinned_position: 1)
+    p2 = Prompt.create!(title: "P2", pinned: true, pinned_position: 2)
+
+    patch reorder_pinned_prompts_url(format: :json), params: { prompt_ids: [ p2.id, p1.id ] }
+    assert_response :ok
+
+    assert_equal 1, p2.reload.pinned_position
+    assert_equal 2, p1.reload.pinned_position
+  end
+
+  test "sidebar displays project names without nested prompts" do
+    get prompts_url
+    assert_response :success
+    # Projects header and project name are present
+    assert_select "span", text: "Projects"
+    assert_select "span", text: @project.name
+    # Project prompts are not nested in sidebar
+    assert_select "nav a", text: /↳/ , count: 0
+  end
+
+  test "sidebar displays clickable Standalone Prompts and Pinned Prompts" do
+    @standalone_prompt.toggle_pin!
+    get prompts_url
+    assert_response :success
+
+    assert_select "nav a[href=?]", prompts_path(scope: "standalone"), text: /Standalone Prompts/
+    assert_select "span", text: "Pinned Prompts"
+    assert_select "[data-controller='pinned-sortable'] a", text: @standalone_prompt.title
+  end
 end

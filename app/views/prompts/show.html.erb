@@ -61,6 +61,17 @@
 
     <!-- Actions Toolbar -->
     <div class="flex items-center gap-2 flex-wrap">
+      <!-- Pin / Unpin Button -->
+      <%= button_to toggle_pin_prompt_path(@prompt),
+                    method: :patch,
+                    title: @prompt.pinned? ? "Unpin prompt" : "Pin prompt",
+                    class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border shadow-sm transition active:scale-95 #{@prompt.pinned? ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border-neutral-700/60'}" do %>
+        <svg class="w-4 h-4 shrink-0 #{@prompt.pinned? ? 'fill-current text-cyan-400' : 'fill-none'}" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        <span><%= @prompt.pinned? ? "Pinned" : "Pin" %></span>
+      <% end %>
+
       <!-- One-Click Copy Markdown Button -->
       <div data-controller="clipboard" data-clipboard-content-value="<%= @prompt.body %>">
         <button type="button"
