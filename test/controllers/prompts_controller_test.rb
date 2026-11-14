@@ -136,7 +136,7 @@ class PromptsControllerTest < ActionDispatch::IntegrationTest
     assert_select "span", text: "Projects"
     assert_select "span", text: @project.name
     # Project prompts are not nested in sidebar
-    assert_select "nav a", text: /↳/ , count: 0
+    assert_select "nav a", text: /↳/, count: 0
   end
 
   test "sidebar displays clickable Standalone Prompts and Pinned Prompts" do
