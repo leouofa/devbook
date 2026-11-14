@@ -1,5 +1,5 @@
 class PromptsController < ApplicationController
-  before_action :set_prompt, only: %i[show edit update destroy attach_files purge_attachment]
+  before_action :set_prompt, only: %i[show edit update destroy toggle_pin attach_files purge_attachment]
 
   def index
     @scope = params[:scope].presence
@@ -58,6 +58,30 @@ class PromptsController < ApplicationController
     redirect_target = @prompt.project ? project_path(@prompt.project) : root_path
     @prompt.destroy
     redirect_to redirect_target, notice: "Prompt deleted successfully."
+  end
+
+  def toggle_pin
+    @prompt.toggle_pin!
+
+    respond_to do |format|
+      format.html { redirect_back_or_to @prompt }
+      format.json { render json: { status: :ok, pinned: @prompt.pinned?, pinned_position: @prompt.pinned_position } }
+    end
+  end
+
+  def reorder_pinned
+    prompt_ids = params[:prompt_ids] || []
+
+    Prompt.transaction do
+      prompt_ids.each_with_index do |id, index|
+        Prompt.where(id: id, pinned: true).update_all(pinned_position: index + 1)
+      end
+    end
+
+    respond_to do |format|
+      format.json { render json: { status: :ok } }
+      format.html { redirect_back_or_to root_path }
+    end
   end
 
   def attach_files

@@ -61,12 +61,23 @@
 
     <!-- Actions Toolbar -->
     <div class="flex items-center gap-2 flex-wrap">
+      <!-- Pin / Unpin Button -->
+      <%= button_to toggle_pin_prompt_path(@prompt),
+                    method: :patch,
+                    title: @prompt.pinned? ? "Unpin prompt" : "Pin prompt",
+                    class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border shadow-sm transition active:scale-95 cursor-pointer #{@prompt.pinned? ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border-neutral-700/60'}" do %>
+        <svg class="w-4 h-4 shrink-0 #{@prompt.pinned? ? 'fill-current text-cyan-400' : 'fill-none'}" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+        <span><%= @prompt.pinned? ? "Pinned" : "Pin" %></span>
+      <% end %>
+
       <!-- One-Click Copy Markdown Button -->
       <div data-controller="clipboard" data-clipboard-content-value="<%= @prompt.body %>">
         <button type="button"
                 data-clipboard-target="button"
                 data-action="click->clipboard#copy"
-                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-neutral-800 hover:bg-neutral-700 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 shadow-sm transition active:scale-95">
+                class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono font-medium bg-neutral-800 hover:bg-neutral-700 text-cyan-300 hover:text-cyan-200 border border-cyan-500/30 shadow-sm transition active:scale-95 cursor-pointer">
           <svg class="w-4 h-4 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
@@ -79,19 +90,19 @@
         <button type="button"
                 data-markdown-editor-target="previewTab"
                 data-action="click->markdown-editor#setPreviewMode"
-                class="px-2.5 py-1 rounded-md font-medium transition bg-neutral-800 text-neutral-100 shadow-sm">
+                class="px-2.5 py-1 rounded-md font-medium transition bg-neutral-800 text-neutral-100 shadow-sm cursor-pointer">
           Preview
         </button>
         <button type="button"
                 data-markdown-editor-target="editTab"
                 data-action="click->markdown-editor#setEditMode"
-                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200">
+                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200 cursor-pointer">
           Edit
         </button>
         <button type="button"
                 data-markdown-editor-target="splitTab"
                 data-action="click->markdown-editor#setSplitMode"
-                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200">
+                class="px-2.5 py-1 rounded-md font-medium transition text-neutral-400 hover:text-neutral-200 cursor-pointer">
           Split
         </button>
       </div>
@@ -100,7 +111,7 @@
       <%= button_to prompt_path(@prompt),
                     method: :delete,
                     form: { data: { turbo_confirm: "Are you sure you want to delete this prompt?" } },
-                    class: "p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-neutral-900 border border-neutral-800/60 transition",
+                    class: "p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-neutral-900 border border-neutral-800/60 transition cursor-pointer",
                     title: "Delete prompt" do %>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -141,7 +152,7 @@
       <div data-markdown-editor-target="editorPane" class="hidden space-y-2">
         <div class="flex items-center justify-between text-[11px] font-mono text-neutral-400 px-1">
           <span>Markdown Source</span>
-          <button type="button" data-action="click->markdown-editor#saveNow" class="text-cyan-400 hover:underline">
+          <button type="button" data-action="click->markdown-editor#saveNow" class="text-cyan-400 hover:underline cursor-pointer">
             Save changes
           </button>
         </div>
@@ -159,7 +170,7 @@
       <div data-markdown-editor-target="previewPane" class="block space-y-2">
         <div class="flex items-center justify-between text-[11px] font-mono text-neutral-400 px-1">
           <span>Rendered Markdown View</span>
-          <button type="button" data-action="click->markdown-editor#setEditMode" class="text-cyan-400 hover:underline">
+          <button type="button" data-action="click->markdown-editor#setEditMode" class="text-cyan-400 hover:underline cursor-pointer">
             Edit content
           </button>
         </div>

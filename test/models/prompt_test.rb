@@ -26,4 +26,25 @@ class PromptTest < ActiveSupport::TestCase
     assert_includes Prompt.search("bullet"), p1
     assert_not_includes Prompt.search("bullet"), p2
   end
+
+  test "toggle_pin! toggles pinned state and manages pinned_position" do
+    p1 = Prompt.create!(title: "Prompt 1")
+    p2 = Prompt.create!(title: "Prompt 2")
+
+    assert_not p1.pinned?
+    p1.toggle_pin!
+    assert p1.pinned?
+    assert_equal 1, p1.pinned_position
+
+    p2.toggle_pin!
+    assert p2.pinned?
+    assert_equal 2, p2.pinned_position
+
+    assert_equal [ p1, p2 ], Prompt.pinned.to_a
+
+    p1.toggle_pin!
+    assert_not p1.pinned?
+    assert_nil p1.pinned_position
+    assert_equal [ p2 ], Prompt.pinned.to_a
+  end
 end

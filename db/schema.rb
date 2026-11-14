@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_224013) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -55,6 +55,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_224013) do
     t.text "body", default: "", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "pinned", default: false, null: false
+    t.integer "pinned_position"
+    t.index ["pinned", "pinned_position"], name: "index_prompts_on_pinned_and_pinned_position"
     t.index ["project_id"], name: "index_prompts_on_project_id"
     t.index ["updated_at"], name: "index_prompts_on_updated_at"
   end

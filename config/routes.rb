@@ -8,7 +8,11 @@ Rails.application.routes.draw do
   end
 
   resources :prompts do
+    collection do
+      patch :reorder_pinned
+    end
     member do
+      patch :toggle_pin
       post :attach_files
       delete "attachments/:attachment_id", to: "prompts#purge_attachment", as: :attachment
     end
