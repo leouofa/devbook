@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo.jpg" alt="Devbook Logo" width="600" />
+</p>
+
 # Devbook
 
 <p align="center">
@@ -182,6 +186,39 @@ bin/rubocop
 bin/brakeman --no-pager
 bin/bundler-audit
 ```
+
+---
+
+## REST API & MCP Integration
+
+Devbook includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for easy programmatic integration and Model Context Protocol (MCP) server integration.
+
+### OpenAPI Specification
+- **Live Endpoint**: `GET http://localhost:3000/api/v1/openapi.json`
+- **Specification File**: [`openapi.json`](file:///Users/leonid/src/devbook/openapi.json) located in repository root
+
+### API Endpoints Summary
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/stats` | System statistics (total prompts, projects, attachments) |
+| `GET` | `/api/v1/openapi` | OpenAPI 3.1.0 schema specification |
+| `POST` | `/api/v1/markdown/render` | Render raw Markdown text to sanitized HTML |
+| `GET` | `/api/v1/projects` | List projects with prompt counts and search (`?q=...`) |
+| `POST` | `/api/v1/projects` | Create a new project |
+| `GET` | `/api/v1/projects/:id` | Get project details and associated prompts |
+| `PATCH` | `/api/v1/projects/:id` | Update project attributes |
+| `DELETE` | `/api/v1/projects/:id` | Delete project (preserves prompts as standalone) |
+| `GET` | `/api/v1/prompts` | List prompts (filter by `project_id`, `scope`, `pinned`, `q`) |
+| `POST` | `/api/v1/prompts` | Create a new prompt |
+| `GET` | `/api/v1/prompts/:id` | Get prompt details (`?render_markdown=true` for HTML) |
+| `PATCH` | `/api/v1/prompts/:id` | Update a prompt |
+| `DELETE` | `/api/v1/prompts/:id` | Delete a prompt |
+| `PATCH` | `/api/v1/prompts/:id/toggle_pin` | Toggle pinned state of a prompt |
+| `PATCH` | `/api/v1/prompts/reorder_pinned` | Reorder pinned prompts (`{ prompt_ids: [...] }`) |
+| `GET` | `/api/v1/prompts/:id/attachments` | List prompt attachments with metadata and URLs |
+| `POST` | `/api/v1/prompts/:id/attachments` | Upload file attachments (`multipart/form-data`) |
+| `DELETE` | `/api/v1/prompts/:id/attachments/:att_id` | Purge attachment |
 
 ---
 
