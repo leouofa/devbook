@@ -58,4 +58,21 @@ class PromptsTest < ApplicationSystemTestCase
       assert_text "No pinned prompts yet."
     end
   end
+
+  test "pin, copy, and toolbar buttons have pointer cursor" do
+    visit root_url
+    assert_equal "pointer", find("button", text: "Pin").native.css_value("cursor")
+    assert_equal "pointer", find("button", text: "Copy").native.css_value("cursor")
+
+    within "main" do
+      click_on "System Test Prompt"
+    end
+    assert_selector "h1", text: "System Test Prompt"
+
+    assert_equal "pointer", find("button", text: "Pin").native.css_value("cursor")
+    assert_equal "pointer", find("button", text: "Copy Markdown").native.css_value("cursor")
+    assert_equal "pointer", find("[data-markdown-editor-target='previewTab']").native.css_value("cursor")
+    assert_equal "pointer", find("[data-markdown-editor-target='editTab']").native.css_value("cursor")
+    assert_equal "pointer", find("[data-markdown-editor-target='splitTab']").native.css_value("cursor")
+  end
 end

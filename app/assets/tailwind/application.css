@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Ensure all buttons and interactive controls display a pointer cursor */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
 /* Custom styles for developer-friendly dark markdown typography */
 .markdown-body {
   color: #e5e7eb;
