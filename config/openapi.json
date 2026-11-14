@@ -1,0 +1,670 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Devbook Platform API",
+    "version": "1.0.0",
+    "description": "RESTful API for Devbook prompt engineering workbench, projects, prompts, attachments, and markdown rendering."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "tags": [
+    { "name": "Projects", "description": "Manage prompt workspaces and projects" },
+    { "name": "Prompts", "description": "Manage prompt scratchpads, templates, and pinned prompts" },
+    { "name": "Attachments", "description": "Manage file attachments associated with prompts" },
+    { "name": "Markdown", "description": "Markdown rendering and preview services" },
+    { "name": "System", "description": "System health, statistics, and platform metadata" }
+  ],
+  "paths": {
+    "/api/v1/stats": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Get system statistics",
+        "description": "Returns counts of total prompts, standalone prompts, pinned prompts, projects, and attachments.",
+        "responses": {
+          "200": {
+            "description": "Current platform statistics",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Stats" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/openapi": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Get OpenAPI schema specification",
+        "description": "Returns the complete OpenAPI 3.1.0 JSON schema for the Devbook API.",
+        "responses": {
+          "200": {
+            "description": "OpenAPI schema document",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/markdown/render": {
+      "post": {
+        "tags": ["Markdown"],
+        "summary": "Render Markdown text to sanitized HTML",
+        "description": "Processes GitHub Flavored Markdown (tables, fenced code, autolinks) using Redcarpet and sanitizes allowed HTML tags.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MarkdownRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rendered HTML output",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MarkdownResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "List all projects",
+        "description": "Retrieves projects ordered alphabetically by name with prompt counts and optional search filtering.",
+        "parameters": [
+          { "name": "q", "in": "query", "description": "Search keyword for project name or description", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "description": "Maximum number of projects to return (default 50, max 100)", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "description": "Offset pagination cursor", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of projects with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "projects": { "type": "array", "items": { "$ref": "#/components/schemas/Project" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  },
+                  "required": ["projects", "meta"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Projects"],
+        "summary": "Create a new project",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{id}": {
+      "get": {
+        "tags": ["Projects"],
+        "summary": "Get project details",
+        "description": "Retrieves project attributes along with associated prompts.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details with prompt summaries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProjectWithPrompts" }
+              }
+            }
+          },
+          "404": {
+            "description": "Project not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Projects"],
+        "summary": "Update a project",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProjectInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Project" }
+              }
+            }
+          },
+          "404": { "description": "Project not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Projects"],
+        "summary": "Delete a project",
+        "description": "Deletes the project. Prompts belonging to this project will be preserved as standalone prompts (nullified project_id).",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Project ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Project deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Project not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/prompts": {
+      "get": {
+        "tags": ["Prompts"],
+        "summary": "List prompts",
+        "description": "Retrieves prompts with extensive filtering options (by project, standalone status, pinned state, or full-text search).",
+        "parameters": [
+          { "name": "q", "in": "query", "description": "Search keyword for prompt title or body", "schema": { "type": "string" } },
+          { "name": "project_id", "in": "query", "description": "Filter by associated project ID", "schema": { "type": "integer" } },
+          { "name": "scope", "in": "query", "description": "Scope filter: 'standalone' (unassigned) or 'all'", "schema": { "type": "string", "enum": ["standalone", "all"] } },
+          { "name": "pinned", "in": "query", "description": "Filter by pinned status ('true' or 'false')", "schema": { "type": "boolean" } },
+          { "name": "limit", "in": "query", "description": "Maximum number of prompts to return (default 50, max 100)", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "description": "Offset pagination cursor", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of prompts with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "prompts": { "type": "array", "items": { "$ref": "#/components/schemas/Prompt" } },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  },
+                  "required": ["prompts", "meta"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Prompts"],
+        "summary": "Create a new prompt",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PromptInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Prompt created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PromptDetail" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prompts/reorder_pinned": {
+      "patch": {
+        "tags": ["Prompts"],
+        "summary": "Reorder pinned prompts",
+        "description": "Updates the sequential pinned position of prompts given an ordered list of prompt IDs.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt_ids": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "description": "Array of prompt IDs in their new desired order"
+                  }
+                },
+                "required": ["prompt_ids"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pinned prompts successfully reordered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Pinned prompts reordered successfully" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prompts/{id}": {
+      "get": {
+        "tags": ["Prompts"],
+        "summary": "Get prompt details",
+        "description": "Retrieves prompt details, attachments, and optional rendered Markdown HTML.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } },
+          { "name": "render_markdown", "in": "query", "description": "Whether to render and include the sanitized HTML output of the markdown body", "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detailed prompt object",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PromptDetail" }
+              }
+            }
+          },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "patch": {
+        "tags": ["Prompts"],
+        "summary": "Update a prompt",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } },
+          { "name": "render_markdown", "in": "query", "description": "Whether to include rendered HTML in the response", "schema": { "type": "boolean" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PromptInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Prompt updated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PromptDetail" }
+              }
+            }
+          },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "422": { "description": "Validation error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Prompts"],
+        "summary": "Delete a prompt",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prompt deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Prompt deleted successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/prompts/{id}/toggle_pin": {
+      "patch": {
+        "tags": ["Prompts"],
+        "summary": "Toggle pin status",
+        "description": "Toggles prompt pinned state between pinned and unpinned, automatically assigning or clearing pinned_position.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pin state toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "pinned": { "type": "boolean" },
+                    "pinned_position": { "type": ["integer", "null"] },
+                    "prompt": { "$ref": "#/components/schemas/Prompt" }
+                  },
+                  "required": ["status", "pinned", "prompt"]
+                }
+              }
+            }
+          },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/prompts/{id}/attachments": {
+      "get": {
+        "tags": ["Attachments"],
+        "summary": "List prompt attachments",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of attachments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+                  },
+                  "required": ["attachments"]
+                }
+              }
+            }
+          },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Attachments"],
+        "summary": "Upload files as attachments to a prompt",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": { "type": "string", "format": "binary" },
+                    "description": "One or more files to attach to the prompt"
+                  }
+                },
+                "required": ["files"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Files attached successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+                  },
+                  "required": ["status", "attachments"]
+                }
+              }
+            }
+          },
+          "400": { "description": "No files provided", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "404": { "description": "Prompt not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/api/v1/prompts/{id}/attachments/{attachment_id}": {
+      "delete": {
+        "tags": ["Attachments"],
+        "summary": "Delete a prompt attachment",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Prompt ID", "schema": { "type": "integer" } },
+          { "name": "attachment_id", "in": "path", "required": true, "description": "ActiveStorage Attachment ID", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attachment purged successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "message": { "type": "string", "example": "Attachment removed successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Prompt or Attachment not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Code Review Studio" },
+          "description": { "type": ["string", "null"], "example": "Prompts for pull request reviews and linting" },
+          "prompts_count": { "type": "integer", "example": 5 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "name", "prompts_count", "created_at", "updated_at"]
+      },
+      "ProjectInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Code Review Studio" },
+          "description": { "type": "string", "example": "Prompts for pull request reviews" }
+        },
+        "required": ["name"]
+      },
+      "ProjectWithPrompts": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Project" },
+          {
+            "type": "object",
+            "properties": {
+              "prompts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "integer" },
+                    "title": { "type": "string" },
+                    "pinned": { "type": "boolean" },
+                    "pinned_position": { "type": ["integer", "null"] },
+                    "updated_at": { "type": "string", "format": "date-time" }
+                  },
+                  "required": ["id", "title", "pinned"]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Prompt": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "project_id": { "type": ["integer", "null"], "example": 2 },
+          "project_name": { "type": ["string", "null"], "example": "Code Review Studio" },
+          "title": { "type": "string", "example": "Senior Reviewer Prompt" },
+          "body": { "type": "string", "example": "# You are a Principal Engineer..." },
+          "pinned": { "type": "boolean", "example": true },
+          "pinned_position": { "type": ["integer", "null"], "example": 1 },
+          "attachments_count": { "type": "integer", "example": 2 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "title", "pinned", "attachments_count", "created_at", "updated_at"]
+      },
+      "PromptDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Prompt" },
+          {
+            "type": "object",
+            "properties": {
+              "rendered_html": { "type": "string", "description": "Rendered GFM sanitized HTML if requested via render_markdown=true" },
+              "attachments": { "type": "array", "items": { "$ref": "#/components/schemas/Attachment" } }
+            }
+          }
+        ]
+      },
+      "PromptInput": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "example": "Senior Reviewer Prompt" },
+          "body": { "type": "string", "example": "# System Prompt..." },
+          "project_id": { "type": ["integer", "null"], "example": 1 },
+          "pinned": { "type": "boolean", "example": false },
+          "pinned_position": { "type": ["integer", "null"] }
+        },
+        "required": ["title"]
+      },
+      "Attachment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 10 },
+          "filename": { "type": "string", "example": "schema.sql" },
+          "content_type": { "type": ["string", "null"], "example": "application/sql" },
+          "byte_size": { "type": "integer", "example": 2048 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "url": { "type": "string", "example": "http://localhost:3000/rails/active_storage/blobs/..." }
+        },
+        "required": ["id", "filename", "byte_size", "created_at", "url"]
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "total_prompts": { "type": "integer", "example": 42 },
+          "standalone_prompts": { "type": "integer", "example": 12 },
+          "pinned_prompts": { "type": "integer", "example": 5 },
+          "total_projects": { "type": "integer", "example": 6 },
+          "total_attachments": { "type": "integer", "example": 8 }
+        },
+        "required": ["total_prompts", "standalone_prompts", "pinned_prompts", "total_projects", "total_attachments"]
+      },
+      "MarkdownRequest": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "example": "# Hello World\n\n- item 1\n- item 2" }
+        },
+        "required": ["text"]
+      },
+      "MarkdownResponse": {
+        "type": "object",
+        "properties": {
+          "html": { "type": "string", "example": "<h1>Hello World</h1>\n<ul>\n<li>item 1</li>\n<li>item 2</li>\n</ul>\n" }
+        },
+        "required": ["html"]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "integer", "example": 50 },
+          "offset": { "type": "integer", "example": 0 },
+          "total_count": { "type": "integer", "example": 120 }
+        },
+        "required": ["limit", "offset", "total_count"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Validation failed" },
+          "details": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["Title can't be blank"]
+          }
+        },
+        "required": ["error", "details"]
+      }
+    }
+  }
+}
