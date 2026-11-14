@@ -17,11 +17,26 @@
 
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <script>
+      if (localStorage.getItem("devbook:sidebar-collapsed") === "true") {
+        document.documentElement.classList.add("sidebar-collapsed");
+      }
+    </script>
+    <style>
+      html.sidebar-collapsed [data-sidebar-target="sidebar"] {
+        display: none !important;
+      }
+      html.sidebar-collapsed [data-sidebar-target="expandTrigger"] {
+        display: block !important;
+      }
+    </style>
   </head>
 
-  <body class="h-full flex overflow-hidden bg-neutral-950 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+  <body class="h-full flex overflow-hidden bg-neutral-950 font-sans selection:bg-cyan-500/30 selection:text-cyan-200"
+        data-controller="sidebar">
     <!-- Left Workspace Sidebar -->
-    <aside class="w-72 lg:w-80 shrink-0 bg-neutral-900 border-r border-neutral-800/80 flex flex-col h-full z-20">
+    <aside data-sidebar-target="sidebar" class="w-72 lg:w-80 shrink-0 bg-neutral-900 border-r border-neutral-800/80 flex flex-col h-full z-20">
       <!-- App Header -->
       <div class="p-4 border-b border-neutral-800/80 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
@@ -36,9 +51,20 @@
           </div>
         </div>
 
-        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700/60">
-          No Auth
-        </span>
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700/60">
+            No Auth
+          </span>
+          <button type="button"
+                  data-action="click->sidebar#toggle"
+                  class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition"
+                  title="Collapse sidebar (⌘\)"
+                  aria-label="Collapse sidebar">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- Quick Search Bar -->
@@ -173,7 +199,22 @@
     </aside>
 
     <!-- Main Workspace Pane -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-neutral-950">
+    <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-neutral-950 relative">
+      <!-- Collapsed Sidebar Re-open Button -->
+      <div data-sidebar-target="expandTrigger" class="hidden absolute top-3 left-3 z-30">
+        <button type="button"
+                data-action="click->sidebar#toggle"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-900/95 border border-neutral-800 hover:border-neutral-700 text-neutral-400 hover:text-neutral-100 shadow-md backdrop-blur transition text-xs font-mono"
+                title="Expand sidebar (⌘\)"
+                aria-label="Expand sidebar">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>
+          <span>Sidebar</span>
+          <kbd class="text-[10px] bg-neutral-800 px-1 py-0.5 rounded text-neutral-400 border border-neutral-700">⌘\</kbd>
+        </button>
+      </div>
+
       <!-- Flash Notices -->
       <% if notice.present? %>
         <div class="bg-emerald-500/10 border-b border-emerald-500/20 px-6 py-2.5 text-xs text-emerald-400 font-medium flex items-center justify-between animate-fade-in">
