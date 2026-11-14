@@ -15,6 +15,7 @@
   <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4"></a>
   <a href="https://www.postgresql.org"><img src="https://img.shields.io/badge/PostgreSQL-16%2B-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
   <img src="https://img.shields.io/badge/Architecture-Local--First-22c55e?style=flat-square" alt="Local-First Architecture">
+  <a href="https://github.com/leouofa/devbook-mcp"><img src="https://img.shields.io/badge/MCP_Server-devbook--mcp-6366f1?style=flat-square&logo=github&logoColor=white" alt="Devbook MCP Server"></a>
 </p>
 
 ---
@@ -59,6 +60,10 @@ Software engineers and AI practitioners frequently juggle complex system prompts
 - **Collapsible Sidebar**: Toggle with `⌘\` / `Ctrl+\` or via the top-bar button.
 - **Preference Persistence**: Sidebar collapse state is remembered across refreshes and page transitions via `localStorage`.
 - **Mobile First-Class Drawer**: On mobile screens (< 768px), the sidebar expands to full width with main view masking, automatically closing upon link selection for seamless navigation.
+
+### 🤖 Model Context Protocol (MCP) & REST API
+- **Official MCP Server**: Connect AI coding assistants (Claude Desktop, Cursor, Gemini, Antigravity) directly to Devbook via [`devbook-mcp`](https://github.com/leouofa/devbook-mcp).
+- **RESTful API & OpenAPI 3.1**: Full programmatic endpoints for prompts, projects, attachments, search, and markdown rendering.
 
 ---
 
@@ -192,6 +197,18 @@ bin/bundler-audit
 ## REST API & MCP Integration
 
 Devbook includes a complete versioned RESTful JSON API (`/api/v1`) with full OpenAPI 3.1.0 specifications, designed for easy programmatic integration and Model Context Protocol (MCP) server integration.
+
+### Official Model Context Protocol (MCP) Server
+
+Connect Devbook directly to your AI coding agents, IDEs, and assistant workflows (such as Claude Desktop, Cursor, Gemini, and Antigravity) using the official MCP server:
+
+🔗 **[Devbook MCP Server (`devbook-mcp`)](https://github.com/leouofa/devbook-mcp)**
+
+The MCP server provides dedicated tools for AI agents to:
+- Browse, search, read, create, and update prompts and projects
+- Toggle and reorder pinned prompts
+- Inspect and manage ActiveStorage file attachments
+- Render Markdown via Devbook's server-side Redcarpet pipeline
 
 ### OpenAPI Specification
 - **Live Endpoint**: `GET http://localhost:3000/api/v1/openapi.json`

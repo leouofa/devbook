@@ -11,6 +11,10 @@
       "description": "Local development server"
     }
   ],
+  "externalDocs": {
+    "description": "Official Devbook Model Context Protocol (MCP) Server",
+    "url": "https://github.com/leouofa/devbook-mcp"
+  },
   "tags": [
     { "name": "Projects", "description": "Manage prompt workspaces and projects" },
     { "name": "Prompts", "description": "Manage prompt scratchpads, templates, and pinned prompts" },
