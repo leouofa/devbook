@@ -12,14 +12,14 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <%= link_to edit_project_path(@project), class: "px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition text-xs font-mono" do %>
-        Edit Project
+      <%= link_to edit_project_path(@project), class: "px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition text-xs font-mono whitespace-nowrap" do %>
+        Edit
       <% end %>
 
       <%= button_to project_path(@project),
                     method: :delete,
                     form: { data: { turbo_confirm: "Are you sure you want to delete this project? Its prompts will become standalone." } },
-                    class: "px-2.5 py-1 rounded text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition text-xs font-mono" do %>
+                    class: "px-2.5 py-1 rounded text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 transition text-xs font-mono whitespace-nowrap" do %>
         Delete
       <% end %>
     </div>
