@@ -19,16 +19,40 @@
     <%= javascript_importmap_tags %>
 
     <script>
-      if (localStorage.getItem("devbook:sidebar-collapsed") === "true") {
-        document.documentElement.classList.add("sidebar-collapsed");
-      }
+      (function() {
+        var isMobile = window.innerWidth < 768;
+        var collapsed;
+        if (isMobile) {
+          var hasSpecificPath = Boolean(window.location.pathname.match(/\/(prompts|projects)\/(.+)/));
+          var sessionMobile = sessionStorage.getItem("devbook:sidebar-mobile-collapsed");
+          collapsed = sessionMobile !== null ? sessionMobile === "true" : hasSpecificPath;
+        } else {
+          collapsed = localStorage.getItem("devbook:sidebar-collapsed") === "true";
+        }
+        if (collapsed) {
+          document.documentElement.classList.add("sidebar-collapsed");
+        }
+      })();
     </script>
     <style>
+      @media (max-width: 767px) {
+        html:not(.sidebar-collapsed) [data-sidebar-target="main"] {
+          display: none !important;
+        }
+        html:not(.sidebar-collapsed) [data-sidebar-target="sidebar"] {
+          width: 100% !important;
+          display: flex !important;
+        }
+      }
+
       html.sidebar-collapsed [data-sidebar-target="sidebar"] {
         display: none !important;
       }
       html.sidebar-collapsed [data-sidebar-target="expandTrigger"] {
         display: block !important;
+      }
+      html.sidebar-collapsed [data-sidebar-target="main"] {
+        display: flex !important;
       }
     </style>
   </head>
@@ -36,7 +60,9 @@
   <body class="h-full flex overflow-hidden bg-neutral-950 font-sans selection:bg-cyan-500/30 selection:text-cyan-200"
         data-controller="sidebar">
     <!-- Left Workspace Sidebar -->
-    <aside data-sidebar-target="sidebar" class="w-72 lg:w-80 shrink-0 bg-neutral-900 border-r border-neutral-800/80 flex flex-col h-full z-20">
+    <aside data-sidebar-target="sidebar"
+           data-action="click->sidebar#handleNavClick"
+           class="w-full md:w-72 lg:w-80 shrink-0 bg-neutral-900 md:border-r border-neutral-800/80 flex flex-col h-full z-20">
       <!-- App Header -->
       <div class="p-4 border-b border-neutral-800/80 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
@@ -52,9 +78,6 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700/60">
-            No Auth
-          </span>
           <button type="button"
                   data-action="click->sidebar#toggle"
                   class="p-1.5 rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition"
@@ -199,7 +222,7 @@
     </aside>
 
     <!-- Main Workspace Pane -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-neutral-950 relative">
+    <main data-sidebar-target="main" class="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-neutral-950 relative">
       <!-- Collapsed Sidebar Re-open Button -->
       <div data-sidebar-target="expandTrigger" class="hidden absolute top-3 left-3 z-30">
         <button type="button"
@@ -211,7 +234,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
           </svg>
           <span>Sidebar</span>
-          <kbd class="text-[10px] bg-neutral-800 px-1 py-0.5 rounded text-neutral-400 border border-neutral-700">⌘\</kbd>
+          <kbd class="hidden sm:inline text-[10px] bg-neutral-800 px-1 py-0.5 rounded text-neutral-400 border border-neutral-700">⌘\</kbd>
         </button>
       </div>
 
