@@ -54,6 +54,13 @@
           </span>
         <% end %>
 
+        <%= link_to prompt_versions_path(@prompt),
+                    id: "prompt_version_badge",
+                    title: "View version history",
+                    class: "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition" do %>
+          <span>v<%= @prompt.current_version_number %></span>
+        <% end %>
+
         <span class="text-neutral-600 text-xs font-mono">•</span>
         <span class="text-xs text-neutral-500 font-mono">Updated <%= time_ago_in_words(@prompt.updated_at) %> ago</span>
       </div>
@@ -61,6 +68,17 @@
 
     <!-- Actions Toolbar -->
     <div class="flex items-center gap-2 flex-wrap">
+      <!-- History Button -->
+      <%= link_to prompt_versions_path(@prompt),
+                  id: "prompt_history_button",
+                  title: "Version history and diffs",
+                  class: "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 shadow-sm transition active:scale-95 cursor-pointer" do %>
+        <svg class="w-3.5 h-3.5 shrink-0 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>History (v<%= @prompt.current_version_number %>)</span>
+      <% end %>
+
       <!-- Pin / Unpin Button -->
       <%= button_to toggle_pin_prompt_path(@prompt),
                     method: :patch,

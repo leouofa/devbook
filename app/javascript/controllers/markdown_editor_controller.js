@@ -34,7 +34,8 @@ export default class extends Controller {
   handleKeydown(event) {
     if ((event.metaKey || event.ctrlKey) && event.key === "s") {
       event.preventDefault()
-      this.saveNow()
+      if (this.saveTimeout) clearTimeout(this.saveTimeout)
+      this.performSave({ autoSave: false })
     }
   }
 
@@ -114,20 +115,29 @@ export default class extends Controller {
 
     if (this.saveTimeout) clearTimeout(this.saveTimeout)
     this.saveTimeout = setTimeout(() => {
-      this.saveNow()
+      this.performSave({ autoSave: true })
     }, 1200)
   }
 
-  async saveNow() {
+  saveNow(event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault()
+    }
+    if (this.saveTimeout) clearTimeout(this.saveTimeout)
+    return this.performSave({ autoSave: false })
+  }
+
+  async performSave({ autoSave = false } = {}) {
     if (!this.hasFormTarget) return
 
     if (this.hasStatusIndicatorTarget) {
-      this.statusIndicatorTarget.textContent = "Saving..."
+      this.statusIndicatorTarget.textContent = autoSave ? "Auto-saving..." : "Saving version..."
       this.statusIndicatorTarget.className = "text-xs font-mono text-cyan-400 animate-pulse"
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
     const formData = new FormData(this.formTarget)
+    formData.set("auto_save", autoSave ? "1" : "0")
 
     try {
       const response = await fetch(this.formTarget.action, {
@@ -150,7 +160,7 @@ export default class extends Controller {
 
         if (this.hasStatusIndicatorTarget) {
           const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-          this.statusIndicatorTarget.textContent = `Saved at ${time}`
+          this.statusIndicatorTarget.textContent = autoSave ? `Auto-saved at ${time}` : `Saved at ${time}`
           this.statusIndicatorTarget.className = "text-xs font-mono text-emerald-400"
         }
       } else {

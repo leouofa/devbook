@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "prompt_versions", force: :cascade do |t|
+    t.bigint "prompt_id", null: false
+    t.integer "version_number", null: false
+    t.string "title", null: false
+    t.text "body", default: "", null: false
+    t.datetime "created_at", null: false
+    t.index ["prompt_id", "created_at"], name: "index_prompt_versions_on_prompt_id_and_created_at"
+    t.index ["prompt_id", "version_number"], name: "index_prompt_versions_on_prompt_id_and_version_number", unique: true
+    t.index ["prompt_id"], name: "index_prompt_versions_on_prompt_id"
+  end
+
   create_table "prompts", force: :cascade do |t|
     t.bigint "project_id"
     t.string "title", null: false
@@ -64,5 +75,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_235612) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "prompt_versions", "prompts", on_delete: :cascade
   add_foreign_key "prompts", "projects", on_delete: :nullify
 end
