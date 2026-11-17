@@ -16,6 +16,12 @@ Rails.application.routes.draw do
       post :attach_files
       delete "attachments/:attachment_id", to: "prompts#purge_attachment", as: :attachment
     end
+
+    resources :versions, only: %i[index show], controller: "prompt_versions" do
+      member do
+        post :restore
+      end
+    end
   end
 
   namespace :api do

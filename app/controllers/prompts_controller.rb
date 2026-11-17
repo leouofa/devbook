@@ -40,10 +40,15 @@ class PromptsController < ApplicationController
   end
 
   def update
+    auto_save = params[:auto_save].to_s == "1" || params[:auto_save].to_s == "true"
+    @prompt.skip_versioning = auto_save
+
     if @prompt.update(prompt_params)
+      @prompt.record_version_snapshot! unless auto_save
+
       respond_to do |format|
         format.html { redirect_to @prompt, notice: "Prompt updated successfully." }
-        format.json { render json: { status: :ok, prompt: @prompt } }
+        format.json { render json: { status: :ok, prompt: @prompt, version_number: @prompt.current_version_number } }
         format.turbo_stream
       end
     else

@@ -1,0 +1,268 @@
+<% content_for :title, "Version History — #{@prompt.title} — Devbook" %>
+
+<div class="max-w-6xl mx-auto space-y-6">
+  <!-- Breadcrumbs & Back Navigation -->
+  <div class="flex items-center justify-between text-xs font-mono text-neutral-500">
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <%= link_to "Devbook", root_path, class: "hover:text-neutral-300 transition" %>
+      <span>/</span>
+      <% if @prompt.project.present? %>
+        <%= link_to "Projects", projects_path, class: "hover:text-neutral-300 transition" %>
+        <span>/</span>
+        <%= link_to @prompt.project.name, project_path(@prompt.project), class: "text-cyan-400 hover:text-cyan-300 transition" %>
+      <% else %>
+        <%= link_to "Standalone Prompts", prompts_path(scope: "standalone"), class: "hover:text-neutral-300 transition" %>
+      <% end %>
+      <span>/</span>
+      <%= link_to @prompt.title, prompt_path(@prompt), class: "hover:text-neutral-300 transition truncate max-w-[200px]" %>
+      <span>/</span>
+      <span class="text-neutral-300">Version History</span>
+    </div>
+
+    <%= link_to prompt_path(@prompt), class: "inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition" do %>
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      <span>Back to Prompt</span>
+    <% end %>
+  </div>
+
+  <!-- Header Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-800/80">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <svg class="w-6 h-6 text-cyan-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Version History</span>
+        </h1>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-cyan-950/70 text-cyan-400 border border-cyan-800/50">
+          <%= pluralize(@versions.size, "version") %>
+        </span>
+      </div>
+      <p class="text-xs text-neutral-400 font-mono mt-1.5">
+        Inspect historical snapshots, compare line-by-line diffs, and restore any prior version of <span class="text-neutral-200 font-semibold"><%= @prompt.title %></span>.
+      </p>
+    </div>
+
+    <% if @prompt.unversioned_changes? %>
+      <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
+        <span>Unversioned auto-saved draft exists</span>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Main Grid: Version Timeline (Left) & Selected Version Inspector (Right) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Left Column: Version Timeline -->
+    <div class="lg:col-span-4 space-y-2">
+      <div class="flex items-center justify-between px-1 mb-2">
+        <span class="text-[11px] font-semibold font-mono uppercase tracking-wider text-neutral-400">Timeline</span>
+        <span class="text-[11px] font-mono text-neutral-500">Newest first</span>
+      </div>
+
+      <div class="space-y-2" id="version_timeline">
+        <% latest_num = @versions.first&.version_number %>
+        <% @versions.each do |version| %>
+          <% is_selected = @selected_version && @selected_version.id == version.id %>
+          <% is_latest = version.version_number == latest_num %>
+
+          <%= link_to prompt_version_path(@prompt, version, view: @view_mode),
+                      id: "version_item_#{version.version_number}",
+                      class: "block p-3.5 rounded-xl border transition cursor-pointer #{is_selected ? 'bg-cyan-950/30 border-cyan-500/60 shadow-sm' : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900/80'}" do %>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold <%= is_selected ? 'bg-cyan-600 text-white' : 'bg-neutral-800 text-cyan-300 border border-neutral-700' %>">
+                  v<%= version.version_number %>
+                </span>
+                <% if is_latest %>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-950/70 text-emerald-400 border border-emerald-800/50">
+                    Latest
+                  </span>
+                <% end %>
+              </div>
+              <span class="text-[11px] font-mono text-neutral-500" title="<%= version.created_at.strftime('%Y-%m-%d %H:%M:%S %Z') %>">
+                <%= time_ago_in_words(version.created_at) %> ago
+              </span>
+            </div>
+
+            <div class="text-xs font-medium text-neutral-200 truncate mt-1">
+              <%= version.title %>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] font-mono text-neutral-500 mt-2 pt-2 border-t border-neutral-800/60">
+              <span><%= version.body.to_s.split.size %> words</span>
+              <span><%= version.created_at.strftime("%b %d, %H:%M") %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Right Column: Selected Version Inspector -->
+    <div class="lg:col-span-8 space-y-4">
+      <% if @selected_version %>
+        <div class="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm">
+          <!-- Inspector Top Toolbar -->
+          <div class="p-4 border-b border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-neutral-900/80">
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-cyan-600 text-white">
+                  v<%= @selected_version.version_number %>
+                </span>
+                <h2 class="text-base font-bold text-neutral-100">
+                  <%= @selected_version.title %>
+                </h2>
+              </div>
+              <div class="flex items-center gap-2 text-xs font-mono text-neutral-500 mt-1 flex-wrap">
+                <span>Saved <%= @selected_version.created_at.strftime("%b %d, %Y at %H:%M:%S") %></span>
+                <span>•</span>
+                <% if @previous_version %>
+                  <span>Comparing against <strong class="text-neutral-300">v<%= @previous_version.version_number %></strong></span>
+                <% else %>
+                  <span>Initial version snapshot</span>
+                <% end %>
+                <% if @diff %>
+                  <span>•</span>
+                  <span class="text-emerald-400">+<%= @diff[:stats][:additions] %></span>
+                  <span class="text-rose-400">-<%= @diff[:stats][:deletions] %></span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Copy Version Markdown -->
+              <div data-controller="clipboard" data-clipboard-content-value="<%= @selected_version.body %>">
+                <button type="button"
+                        data-clipboard-target="button"
+                        data-action="click->clipboard#copy"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white border border-neutral-700/60 transition cursor-pointer">
+                  <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span data-clipboard-target="label">Copy</span>
+                </button>
+              </div>
+
+              <!-- Restore Version Button -->
+              <% can_restore = (@selected_version.version_number != @versions.first&.version_number) || (@prompt.title != @selected_version.title) || (@prompt.body != @selected_version.body) %>
+              <% if can_restore %>
+                <%= button_to restore_prompt_version_path(@prompt, @selected_version),
+                              method: :post,
+                              form: { data: { turbo_confirm: "Restore prompt to v#{@selected_version.version_number}? This will create a new version with v#{@selected_version.version_number}'s content." } },
+                              class: "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-sm transition active:scale-95 cursor-pointer" do %>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                  </svg>
+                  <span>Restore v<%= @selected_version.version_number %></span>
+                <% end %>
+              <% else %>
+                <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-mono bg-neutral-800/60 text-neutral-500 border border-neutral-800">
+                  Current Version
+                </span>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Sub-toolbar: View Mode Tabs (Diff | Rendered | Raw) -->
+          <div class="px-4 py-2.5 bg-neutral-950/60 border-b border-neutral-800 flex items-center justify-between flex-wrap gap-2">
+            <div class="inline-flex rounded-lg bg-neutral-900 p-0.5 border border-neutral-800 text-xs font-mono">
+              <%= link_to prompt_version_path(@prompt, @selected_version, view: "diff"),
+                          class: "px-3 py-1 rounded-md font-medium transition #{@view_mode == 'diff' ? 'bg-neutral-800 text-neutral-100 shadow-sm' : 'text-neutral-400 hover:text-neutral-200'}" do %>
+                Line Diff
+              <% end %>
+              <%= link_to prompt_version_path(@prompt, @selected_version, view: "rendered"),
+                          class: "px-3 py-1 rounded-md font-medium transition #{@view_mode == 'rendered' ? 'bg-neutral-800 text-neutral-100 shadow-sm' : 'text-neutral-400 hover:text-neutral-200'}" do %>
+                Rendered Markdown
+              <% end %>
+              <%= link_to prompt_version_path(@prompt, @selected_version, view: "raw"),
+                          class: "px-3 py-1 rounded-md font-medium transition #{@view_mode == 'raw' ? 'bg-neutral-800 text-neutral-100 shadow-sm' : 'text-neutral-400 hover:text-neutral-200'}" do %>
+                Raw Source
+              <% end %>
+            </div>
+
+            <span class="text-[11px] font-mono text-neutral-500">
+              <%= @selected_version.body.to_s.lines.count %> lines • <%= @selected_version.body.to_s.split.size %> words
+            </span>
+          </div>
+
+          <!-- Title Change Banner (if title changed vs previous version) -->
+          <% if @diff && @diff[:title_changed] %>
+            <div class="px-4 py-3 bg-neutral-950/90 border-b border-neutral-800 text-xs font-mono space-y-1" id="title_diff_banner">
+              <div class="text-[10px] uppercase text-neutral-500 tracking-wider">Title Changed</div>
+              <div class="flex items-center gap-2 text-rose-400 bg-rose-950/30 px-2.5 py-1 rounded border border-rose-900/40">
+                <span class="select-none font-bold">−</span>
+                <span><%= @diff[:old_title] %></span>
+              </div>
+              <div class="flex items-center gap-2 text-emerald-400 bg-emerald-950/30 px-2.5 py-1 rounded border border-emerald-900/40">
+                <span class="select-none font-bold">+</span>
+                <span><%= @diff[:new_title] %></span>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- View Content Body -->
+          <% if @view_mode == "diff" %>
+            <div class="divide-y divide-neutral-800/40 font-mono text-xs overflow-x-auto" id="version_diff_container">
+              <% if @diff && @diff[:lines].any? %>
+                <% @diff[:lines].each do |line| %>
+                  <%
+                    row_classes = case line[:type]
+                    when :added
+                      "bg-emerald-950/30 text-emerald-300"
+                    when :removed
+                      "bg-rose-950/30 text-rose-300"
+                    else
+                      "bg-neutral-900 text-neutral-300"
+                    end
+
+                    marker = case line[:type]
+                    when :added then "+"
+                    when :removed then "-"
+                    else " "
+                    end
+
+                    marker_classes = case line[:type]
+                    when :added then "text-emerald-400 font-bold"
+                    when :removed then "text-rose-400 font-bold"
+                    else "text-neutral-600"
+                    end
+                  %>
+                  <div class="flex items-stretch <%= row_classes %> leading-relaxed">
+                    <span class="w-10 shrink-0 px-2 py-0.5 text-right text-[11px] text-neutral-600 select-none border-r border-neutral-800/60 bg-neutral-950/40">
+                      <%= line[:old_line_number] || "" %>
+                    </span>
+                    <span class="w-10 shrink-0 px-2 py-0.5 text-right text-[11px] text-neutral-600 select-none border-r border-neutral-800/60 bg-neutral-950/40">
+                      <%= line[:new_line_number] || "" %>
+                    </span>
+                    <span class="w-6 shrink-0 py-0.5 text-center select-none <%= marker_classes %>"><%= marker %></span>
+                    <pre class="flex-1 py-0.5 pr-4 whitespace-pre-wrap break-words font-mono"><%= line[:content] %></pre>
+                  </div>
+                <% end %>
+              <% else %>
+                <div class="p-8 text-center text-neutral-500 italic">
+                  (Empty prompt body in this version)
+                </div>
+              <% end %>
+            </div>
+          <% elsif @view_mode == "rendered" %>
+            <div class="markdown-body p-6 bg-neutral-900 min-h-[300px]" id="version_rendered_container">
+              <% if @selected_version.body.present? %>
+                <%= render_markdown(@selected_version.body) %>
+              <% else %>
+                <div class="text-neutral-500 italic text-sm py-8 text-center font-mono">
+                  (Empty prompt body in this version)
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="p-4 bg-neutral-950" id="version_raw_container">
+              <pre class="text-xs font-mono text-neutral-200 whitespace-pre-wrap break-words leading-relaxed"><%= @selected_version.body %></pre>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
